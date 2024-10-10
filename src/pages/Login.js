@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import { useNavigate } from "react-router-dom";
 import { UserCircleIcon, XMarkIcon } from "@heroicons/react/24/solid";
@@ -13,10 +13,23 @@ const Login = () => {
     const [registerPassword, setRegisterPassword] = useState("");
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
+    const [country, setCountry] = useState("");
+    const [countryList, setCountryList] = useState([]);
     const [email, setEmail] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [selectedImage, setSelectedImage] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
+
+    useEffect(() => {
+        fetch('https://restcountries.com/v3.1/all')
+            .then(response => response.json())
+            .then(data => {
+                const countryNames = data.map(country => country.name.common);
+                countryNames.sort((a, b) => a.localeCompare(b));
+                setCountryList(countryNames);
+            })
+            .catch(error => console.error('Error fetching countries:', error));
+    }, [])
 
     const handleLogin = async (event) => {
         event.preventDefault();
@@ -55,6 +68,7 @@ const Login = () => {
         formData.append('password', registerPassword);
         formData.append('first_name', firstName);
         formData.append('last_name', lastName);
+        formData.append('location', country);
         formData.append('email', email);
         formData.append('confirm_password', confirmPassword);
         formData.append('image', selectedImage);
@@ -117,6 +131,10 @@ const Login = () => {
         setPreviewUrl(null);
     }
 
+    const handleCountry = (event) => {
+        setCountry(event.target.value);
+    }
+
     return (
         <div className="relative min-h-screen">
             <Navbar />
@@ -128,7 +146,7 @@ const Login = () => {
 
                     <form className="flex flex-col" onSubmit={handleLogin} method="post">
                         <input
-                            className="rounded-xl m-3 py-2 px-3 text-center"
+                            className="rounded-xl m-3 py-2 px-3 border border-slate-600 text-center"
                             type="text"
                             value={loginUsername}
                             placeholder="Username"
@@ -136,7 +154,7 @@ const Login = () => {
                             required
                         />
                         <input
-                            className="rounded-xl m-3 py-2 px-3 text-center"
+                            className="rounded-xl m-3 py-2 px-3 border border-slate-600 text-center"
                             type="password"
                             value={loginPassword}
                             placeholder="Password"
@@ -154,7 +172,7 @@ const Login = () => {
 
                     <form className="flex flex-col" onSubmit={handleRegister}>
                         <input
-                            className="rounded-xl m-3 py-2 px-3 text-center border-2 invalid:border-red-400"
+                            className="rounded-xl m-3 py-2 px-3 text-center border border-slate-600 invalid:border-red-400"
                             type="text"
                             value={registerUsername}
                             placeholder="Username"
@@ -181,15 +199,15 @@ const Login = () => {
                                 onChange={handleProfilePicture}
                             />
 
-                            <button className="rounded-xl m-3 me-1 py-2 px-3 border hover:border-black" onClick={handleUpload}>Upload</button>
+                            <button className="rounded-xl m-3 me-1 py-2 px-3 border border-slate-600 hover:border-black" onClick={handleUpload}>Upload</button>
 
                             {previewUrl && (
-                                <XMarkIcon className="rounded-xl my-3 ms-1 py-2 px-3 border text-red-500 hover:border-red-500" onClick={handleClear} />
+                                <XMarkIcon className="rounded-xl my-3 ms-1 py-2 px-3 border border-slate-600 text-red-500 hover:border-red-500" onClick={handleClear} />
                             )}
                         </div>
 
                         <input
-                            className="rounded-xl m-3 py-2 px-3 text-center border-2 invalid:border-red-400"
+                            className="rounded-xl m-3 py-2 px-3 text-center border border-slate-600 invalid:border-red-400"
                             type="text"
                             value={firstName}
                             placeholder="First Name"
@@ -197,16 +215,27 @@ const Login = () => {
                             required
                         />
                         <input
-                            className="rounded-xl m-3 py-2 px-3 text-center border-2 invalid:border-red-400"
+                            className="rounded-xl m-3 py-2 px-3 text-center border border-slate-600 invalid:border-red-400"
                             type="text"
                             value={lastName}
                             placeholder="Last Name"
                             onChange={(e) => setLastName(e.target.value)}
                             required
                         />
+                        <select
+                            className="rounded-xl m-3 py-2 px-3 text-center border border-slate-600 invalid:border-red-400"
+                            value={country}
+                            onChange={handleCountry}
+                            required
+                        >
+                            <option value="" hidden>Country</option>
+                            {countryList.map((country, index) => (
+                                <option key={index} value={country}>{country}</option>
+                            ))}
+                        </select>
                         <input
                             id="email"
-                            className="rounded-xl m-3 py-2 px-3 text-center border-2 invalid:border-red-400"
+                            className="rounded-xl m-3 py-2 px-3 text-center border border-slate-600 invalid:border-red-400"
                             type="email"
                             value={email}
                             placeholder="Email"
@@ -220,7 +249,7 @@ const Login = () => {
                         />
                         <input
                             id="registerPassword"
-                            className="rounded-xl m-3 py-2 px-3 text-center border-2 invalid:border-red-400"
+                            className="rounded-xl m-3 py-2 px-3 text-center border border-slate-600 invalid:border-red-400"
                             type="password"
                             value={registerPassword}
                             placeholder="Password"
@@ -233,7 +262,7 @@ const Login = () => {
                             required
                         />
                         <input
-                            className="rounded-xl m-3 py-2 px-3 text-center border-2 invalid:border-red-400"
+                            className="rounded-xl m-3 py-2 px-3 text-center border border-slate-600invalid:border-red-400"
                             type="password"
                             value={confirmPassword}
                             placeholder="Confirm Password"

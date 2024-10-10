@@ -15,9 +15,10 @@ apiClient.interceptors.response.use(
             originalRequest._retry = true;
             const refreshToken = localStorage.getItem('refresh_token');
             try {
-                const newAccessToken = await refreshAccessToken(refreshToken);
-                localStorage.setItem('access_token', newAccessToken);
-                originalRequest.headers['Authorization'] = 'Bearer ' + newAccessToken;
+                const newTokens = await refreshAccessToken(refreshToken);
+                localStorage.setItem('refresh_token', newTokens.refresh);
+                localStorage.setItem('access_token', newTokens.access);
+                originalRequest.headers['Authorization'] = 'Bearer ' + newTokens.access;
                 return apiClient(originalRequest);
             } catch (err) {
                 console.log('Token refresh failed', err);
@@ -37,11 +38,12 @@ async function refreshAccessToken(refreshToken) {
         },
         body: JSON.stringify({ refresh: refreshToken })
     });
+    console.log(response.status);
 
     if (response.ok) {
         const data = await response.json();
-        console.log("at refAccess:" + data);
-        return data.access;  // Return the new access token
+        console.log("at refAccess:" + data.access + "\nref" + data.refresh);
+        return data;  // Return the new access token
     } else {
         throw new Error('Failed to refresh token');
     }

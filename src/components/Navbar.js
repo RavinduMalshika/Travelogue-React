@@ -13,6 +13,47 @@ const Navbar = ({ activeLink }) => {
   const { user } = useContext(AppContext);
   const { setUser } = useContext(AppContext);
 
+  useEffect(() => {
+    if (localStorage.getItem("access_token") != null) {
+      console.log(localStorage.getItem("access_token"));
+      getUser();
+    }
+  }, [])
+
+  const getUser = async () => {
+    const token = localStorage.getItem('access_token');
+    console.log("access:" + token)
+    console.log("refresh:" + localStorage.getItem('refresh_token'))
+
+    try {
+      const response = await apiClient.get('/users/user', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.status === 401) {
+        throw new Error('Unauthorized: Token might be expired or invalid');
+      }
+
+      const userData = response.data;
+      setUser(userData);  
+      console.log(userData);
+    } catch (error) {
+      if (error.response) {
+        console.error('Error fetching user data:', error.response.data);
+        if (error.response.status === 401) {
+          console.error('Unauthorized: Token might be expired or invalid');
+        }
+      } else {
+        console.error('Error fetching user data:', error.message);
+      }
+      setUser(null);
+    }
+  }
+
   const toggleDropdown = () => {
     const dropdownMenu = document.getElementById('dropdown-menu');
     dropdownMenu.classList.toggle('hidden');
@@ -51,6 +92,14 @@ const Navbar = ({ activeLink }) => {
     } catch (error) {
       console.error("Logout Failed:", error)
     }
+  }
+
+  const handleProfile = () => {
+    navigate('/profile');
+  }
+
+  const handleVisitedPlaces = () => {
+
   }
 
   return (
@@ -121,8 +170,8 @@ const Navbar = ({ activeLink }) => {
                 tabIndex="-1"
               >
                 <div>
-                  <Link className="py-2 px-3 hover:bg-slate-100" to={'/profile'}>Profile</Link>
-                  <p className="py-2 px-3 hover:bg-slate-100" href="#" onClick={handleLogout}>Visited Places</p>
+                  <p className="py-2 px-3 hover:bg-slate-100" onClick={handleProfile}>Profile</p>
+                  <p className="py-2 px-3 hover:bg-slate-100" onClick={handleVisitedPlaces}>Visited Places</p>
                 </div>
                 <div className="hover:bg-slate-100">
                   <p className="py-2 px-3 text-red-500" href="#" onClick={handleLogout}>Logout</p>

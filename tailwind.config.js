@@ -3,10 +3,7 @@ module.exports = {
   content: [
     "./src/App.js",
     "./src/components/*",
-    "./src/pages/Home.js",
-    "./src/pages/Login.js",
-    "./src/pages/AboutUs.js",
-    "./src/pages/ContactUs.js",
+    "./src/pages/*",
   ],
   theme: {
     extend: {

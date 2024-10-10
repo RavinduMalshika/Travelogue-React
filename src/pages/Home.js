@@ -13,10 +13,6 @@ const Home = () => {
     const { setUser } = useContext(AppContext);
 
     useEffect(() => {
-        if (localStorage.getItem("access_token") != null) {
-            getUser();
-        }
-
         apiClient.get('/destinations')
             .then(response => {
                 setDestinations(response.data);
@@ -25,45 +21,6 @@ const Home = () => {
                 console.error('There was an error fetching the data!', error);
             });
     }, [])
-
-    const getUser = async () => {
-        const token = localStorage.getItem('access_token');
-        console.log("access:" + token)
-        console.log("refresh:" + localStorage.getItem('refresh_token'))
-
-        try {
-            const response = await apiClient.get('/users/user', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-            });
-
-            // Check if the request was unauthorized
-            if (response.status === 401) {
-                throw new Error('Unauthorized: Token might be expired or invalid');
-            }
-
-            // Axios automatically parses JSON
-            const userData = response.data;
-            setUser(userData);  // Update state with user data
-        } catch (error) {
-            // Handle specific error cases
-            if (error.response) {
-                // Server responded with a status code that falls out of the range of 2xx
-                console.error('Error fetching user data:', error.response.data);
-                if (error.response.status === 401) {
-                    console.error('Unauthorized: Token might be expired or invalid');
-                    // Handle unauthorized access, maybe redirect to login or show a message
-                }
-            } else {
-                // Network error or other issues
-                console.error('Error fetching user data:', error.message);
-            }
-            setUser(null);
-        }
-    }
 
     return (
         <div>
@@ -83,14 +40,6 @@ const Home = () => {
                     </div>
                 </div>
                 <div className="flex flex-nowrap overflow-x-auto">
-                    {/* <DestinationCard title="Harry Potter Warner Bros Studio Tour" cost="$70 - $350" rating="4.0" description="Experience the magic of Harry Potter™ at Warner Bros. Studio with round-trip transfers from London – a perfect day trip for Potterheads of all ages!" type="Tour" image={img1} />
-                    <DestinationCard image={img2} />
-                    <DestinationCard image={img3} />
-                    <DestinationCard image={img4} />
-                    <DestinationCard image={img5} />
-                    <DestinationCard image={img6} />
-                    <DestinationCard image={img7} />
-                    <DestinationCard image={img8} /> */}
                     {destinations.map(destination => (
                         <DestinationCard title={destination.name} rating={destination.rating} description={destination.description} type={destination.destination_type} image={destination.image} cost={destination.cost} location={destination.location} />
                     ))}
