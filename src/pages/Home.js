@@ -20,7 +20,7 @@ const Home = () => {
             .catch(error => {
                 console.error('There was an error fetching the data!', error);
             });
-    }, [])
+    }, []);
 
     return (
         <div>

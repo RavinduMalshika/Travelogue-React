@@ -2,7 +2,8 @@ import { useContext, useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import { AppContext } from "../AppContext";
 import DestinationCard from "../components/DestinationCard";
-import { PencilSquareIcon, CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { PencilSquareIcon, CheckIcon, XMarkIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { UserCircleIcon } from "@heroicons/react/24/solid";
 import { useNavigate } from "react-router-dom";
 import apiClient from "../apiClient";
 
@@ -14,6 +15,8 @@ const Profile = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [countryList, setCountryList] = useState([]);
+    const [selectedImage, setSelectedImage] = useState("");
+    const [profilePicture, setProfilePiicture] = useState("");
     const [username, setUsername] = useState(user != null ? user.username : "");
     const [country, setCountry] = useState(user != null ? user.location : "");
     const [firstName, setFirstName] = useState(user != null ? user.firstName : "");
@@ -36,6 +39,7 @@ const Profile = () => {
 
     useEffect(() => {
         console.log("useEffect called")
+        setProfilePiicture(user != null ? user.image : "");
         setUsername(user != null ? user.username : "");
         setCountry(user != null ? user.location : "");
         setFirstName(user != null ? user.firstName : "");
@@ -44,6 +48,7 @@ const Profile = () => {
 
     const toggleEditing = () => {
         setIsEditing(!isEditing);
+        setProfilePiicture(user.image);
         setUsername(user.username);
         setCountry(user.location);
         setFirstName(user.firstName);
@@ -54,13 +59,15 @@ const Profile = () => {
         const toast = document.getElementById('toast');
 
         try {
-            const response = await apiClient.post('/users/edit', {
-                id: user.id,
-                username: username,
-                first_name: firstName,
-                last_name: lastName,
-                location: country
-            });
+            const formData = new FormData();
+            formData.append('id', user.id);
+            formData.append('username', username);
+            formData.append('first_name', firstName);
+            formData.append('last_name', lastName);
+            formData.append('location', country);
+            formData.append('image', selectedImage);
+
+            const response = await apiClient.post('/users/edit', formData);
 
             setIsEditing(false);
             getUser();
@@ -77,27 +84,27 @@ const Profile = () => {
         } catch (error) {
             console.error('Error during edit:', error);
             if (error.response.data.error === "username") {
-               
-                    toast.classList.remove('hidden');
-                    toast.classList.add('border-red-400');
-                    toast.classList.add('bg-red-100');
-                    toast.innerHTML = "<p>Username already exists. Choose another.</p>"
-                    setTimeout(() => {
-                        toast.classList.add('hidden');
-                        toast.classList.remove('border-red-400');
-                        toast.classList.remove('bg-red-100');
-                    }, 3000);
+
+                toast.classList.remove('hidden');
+                toast.classList.add('border-red-400');
+                toast.classList.add('bg-red-100');
+                toast.innerHTML = "<p>Username already exists. Choose another.</p>"
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                    toast.classList.remove('border-red-400');
+                    toast.classList.remove('bg-red-100');
+                }, 3000);
             }
             else {
                 toast.classList.remove('hidden');
-                    toast.classList.add('border-red-400');
-                    toast.classList.add('bg-red-100');
-                    toast.innerHTML = "<p>Error. Could not edit Profile Details.</p>"
-                    setTimeout(() => {
-                        toast.classList.add('hidden');
-                        toast.classList.remove('border-red-400');
-                        toast.classList.remove('bg-red-100');
-                    }, 3000);
+                toast.classList.add('border-red-400');
+                toast.classList.add('bg-red-100');
+                toast.innerHTML = "<p>Error. Could not edit Profile Details.</p>"
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                    toast.classList.remove('border-red-400');
+                    toast.classList.remove('bg-red-100');
+                }, 3000);
             }
         }
     }
@@ -132,6 +139,24 @@ const Profile = () => {
                 console.error('Error fetching user data:', error.message);
             }
             setUser(null);
+        }
+    }
+
+    const handleUpload = () => {
+        document.getElementById("profile-picture").click();
+    }
+
+    const handleProfilePicture = (event) => {
+        const file = event.target.files[0];
+
+        if (file) {
+            setSelectedImage(file);
+
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setProfilePiicture(reader.result);
+            };
+            reader.readAsDataURL(file);
         }
     }
 
@@ -283,15 +308,44 @@ const Profile = () => {
                                 <p className="absolute left-1/2 -translate-x-1/2 text-xl text-center font-semibold">Your Details</p>
                                 {isEditing &&
                                     <div className="flex">
-                                        <CheckIcon className="w-6" onClick={handleEdit} />
-                                        <XMarkIcon className="w-6" onClick={toggleEditing} />
+                                        <CheckIcon className="w-6 me-3 text-green-600 hover:text-green-500" onClick={handleEdit} role="button" />
+                                        <XMarkIcon className="w-6 text-red-600 hover:text-red-500" onClick={toggleEditing} role="button" />
                                     </div>
                                 }
                                 {!isEditing &&
                                     <PencilSquareIcon className="w-6 text-blue-600 hover:text-blue-500" onClick={toggleEditing} role="button" />
                                 }
                             </div>
-                            <div className="flex lg:flex-row flex-col md:w-3/4 mx-auto my-3 justify-around gap-5">
+                            <div className="mx-auto my-3">
+                                <div className="min-w-16">
+                                    {profilePicture && (
+                                        <div className="relative">
+                                            <img 
+                                            className="object-cover size-40 rounded-full" 
+                                            src={profilePicture} 
+                                            alt="Profile Picture" 
+                                            onClick={isEditing ? handleUpload : null}
+                                            role={isEditing ? "button" : null}
+                                            />
+                                            {isEditing &&
+                                                <TrashIcon className="absolute right-0 top-0 w-8 text-red-600 hover:scale-125 hover:text-red-500" role="button" />
+                                            }
+                                        </div>
+                                    )}
+                                    {!profilePicture && (
+                                        <UserCircleIcon className="min-w-40" />
+                                    )}
+
+                                </div>
+
+                                <input
+                                    className="hidden"
+                                    id="profile-picture"
+                                    type="file"
+                                    onChange={handleProfilePicture}
+                                />
+                            </div>
+                            <div className="flex lg:flex-row flex-col md:w-3/4 md:mx-auto mx-5 my-3 justify-around gap-5">
                                 <div className="md:block flex flex-col lg:w-1/2">
                                     <label className="inline-block md:w-1/4">Username:</label>
                                     <input
@@ -305,7 +359,7 @@ const Profile = () => {
                                 {isEditing &&
                                     <div className="md:block flex flex-col lg:w-1/2">
                                         <label className="inline-block md:w-1/4">Country:</label>
-                                        <select className="rounded-xl w-3/4 py-2 px-3 text-center border border-slate-600" onChange={(e) => setCountry(e.target.value)}>
+                                        <select className="rounded-xl md:w-3/4 py-2 px-3 text-center border border-slate-600" onChange={(e) => setCountry(e.target.value)}>
                                             <option value="">{country}</option>
                                             {countryList.map((country, index) => (
                                                 <option key={index} value={country}>{country}</option>
@@ -324,7 +378,7 @@ const Profile = () => {
                                     </div>
                                 }
                             </div>
-                            <div className="flex lg:flex-row flex-col md:w-3/4 mx-auto my-3 justify-around gap-3">
+                            <div className="flex lg:flex-row flex-col md:w-3/4 md:mx-auto mx-5 my-3 justify-around gap-3">
                                 <div className="md:block flex flex-col lg:w-1/2">
                                     <label className="inline-block md:w-1/4">First Name:</label>
                                     <input

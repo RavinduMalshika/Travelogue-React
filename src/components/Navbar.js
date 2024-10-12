@@ -39,7 +39,7 @@ const Navbar = ({ activeLink }) => {
       }
 
       const userData = response.data;
-      setUser(userData);  
+      setUser(userData);
       console.log(userData);
     } catch (error) {
       if (error.response) {
@@ -116,6 +116,11 @@ const Navbar = ({ activeLink }) => {
           >
             Home</Link>
           <Link
+            to={'/explore'}
+            className={`my-auto mx-4 hover:text-black ${activeLink === "explore" ? "text-black" : "text-slate-500"}`}
+          >
+            Explore</Link>
+          <Link
             to={'/about-us'}
             className={`my-auto mx-4 hover:text-black ${activeLink === "about-us" ? "text-black" : "text-slate-500"}`}
           >About Us</Link>
@@ -138,6 +143,10 @@ const Navbar = ({ activeLink }) => {
               className={`px-4 py-2 hover:text-black ${activeLink === "home" ? "text-black" : "text-slate-500"}`}
             >
               Home</Link>
+            <Link
+              to={'/explore'}
+              className={`px-4 py-2 hover:text-black ${activeLink === "about-us" ? "text-black" : "text-slate-500"}`}
+            >Explore</Link>
             <Link
               to={'/about-us'}
               className={`px-4 py-2 hover:text-black ${activeLink === "about-us" ? "text-black" : "text-slate-500"}`}
