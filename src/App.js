@@ -7,6 +7,8 @@ import Login from './pages/Login.js';
 import { AppProvider } from './AppContext.js';
 import Explore from './pages/Explore.js';
 import Profile from './pages/Profile.js';
+import Destination from './pages/Destination.js';
+import AddDestination from './pages/AddDestination.js';
 
 function App() {
   return (
@@ -19,6 +21,8 @@ function App() {
           <Route path='/login' element={<Login />} />
           <Route path='/explore' element={<Explore />} />
           <Route path='/profile' element={<Profile />} />
+          <Route path='/destination/:id' element={<Destination />} />
+          <Route path='/destination/add' element={<AddDestination />} />
         </Routes>
       </BrowserRouter>
     </AppProvider>

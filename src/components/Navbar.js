@@ -15,15 +15,12 @@ const Navbar = ({ activeLink }) => {
 
   useEffect(() => {
     if (localStorage.getItem("access_token") != null) {
-      console.log(localStorage.getItem("access_token"));
       getUser();
     }
   }, [])
 
   const getUser = async () => {
     const token = localStorage.getItem('access_token');
-    console.log("access:" + token)
-    console.log("refresh:" + localStorage.getItem('refresh_token'))
 
     try {
       const response = await apiClient.get('/users/user', {
@@ -40,7 +37,6 @@ const Navbar = ({ activeLink }) => {
 
       const userData = response.data;
       setUser(userData);
-      console.log(userData);
     } catch (error) {
       if (error.response) {
         console.error('Error fetching user data:', error.response.data);
@@ -105,7 +101,7 @@ const Navbar = ({ activeLink }) => {
   return (
     <nav>
       <div className="flex flex-row my-2 mx-4">
-        <Bars4Icon className="h-6 w-6 mt-auto md:hidden" aria-expanded="true" aria-haspopup="true" onClick={() => toggleDropdown()} />
+        <Bars4Icon className="h-6 w-6 my-auto md:hidden" aria-expanded="true" aria-haspopup="true" onClick={() => toggleDropdown()} />
         <p className="flex grow my-auto md:grow-0 justify-center text-2xl">Travelogue</p>
 
 
@@ -180,7 +176,8 @@ const Navbar = ({ activeLink }) => {
               >
                 <div>
                   <p className="py-2 px-3 hover:bg-slate-100" onClick={handleProfile}>Profile</p>
-                  <p className="py-2 px-3 hover:bg-slate-100" onClick={handleVisitedPlaces}>Visited Places</p>
+                  <p className="py-2 px-3 hover:bg-slate-100" onClick={handleVisitedPlaces}>Visited Destinations</p>
+                  <p className="py-2 px-3 hover:bg-slate-100" onClick={() => navigate('/destination/add')}>Add a Destination</p>
                 </div>
                 <div className="hover:bg-slate-100">
                   <p className="py-2 px-3 text-red-500" href="#" onClick={handleLogout}>Logout</p>

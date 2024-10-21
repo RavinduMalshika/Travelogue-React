@@ -65,24 +65,24 @@ const Explore = () => {
         <div>
             <Navbar activeLink="explore" />
 
-            <div className="flex flex-col mx-10 my-5">
-                <div className="flex flex-row rounded-xl bg-slate-100 border border-slate-600 justify-center">
+            <div className="flex flex-col lg:mx-10 m-5">
+                <div className="flex flex-col md:flex-row rounded-xl bg-slate-100 border border-slate-600 justify-evenly">
                     <input 
-                    className="w-1/4 rounded-xl m-3 py-2 px-3 border border-slate-600 text-center" 
+                    className="md:w-1/4 rounded-xl m-3 py-2 px-3 border border-slate-600 text-center" 
                     type="search" 
                     placeholder="Search" 
                     value={keywordFilter}
                     onChange={(e) => setKeywordFilter(e.target.value)}
                     />
 
-                    <select className="w-1/4 rounded-xl m-3 py-2 px-3 border border-slate-600 text-center" onChange={(e) => setCountryFilter(e.target.value)}>
+                    <select className="md:w-1/4 rounded-xl m-3 py-2 px-3 border border-slate-600 text-center" onChange={(e) => setCountryFilter(e.target.value)}>
                         <option value="">All Countries</option>
                         {countryList.map((country, index) => (
                             <option key={index} value={country}>{country}</option>
                         ))}
                     </select>
 
-                    <select className="w-1/4 rounded-xl m-3 py-2 px-3 border border-slate-600 text-center" onChange={(e) => setRatingFilter(e.target.value)}>
+                    <select className="md:w-1/4 rounded-xl m-3 py-2 px-3 border border-slate-600 text-center" onChange={(e) => setRatingFilter(e.target.value)}>
                         <option value="">All Ratings</option>
                         <option value="2">2 and up</option>
                         <option value="3">3 and up</option>
@@ -92,8 +92,8 @@ const Explore = () => {
                 </div>
 
                 <div className="flex my-3">
-                    {destinations.map(destination => (
-                        <DestinationCard title={destination.name} rating={destination.rating} description={destination.description} type={destination.destination_type} image={destination.image} cost={destination.cost} location={destination.location} />
+                    {destinations.map((destination, index) => (
+                        <DestinationCard key={index} id={destination.id} title={destination.name} rating={destination.rating} description={destination.description} type={destination.destination_type} image={destination.images.length > 0 ? destination.images[0].image : ""} cost={destination.cost} location={destination.location} />
                     ))}
                 </div>
             </div>

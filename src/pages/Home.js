@@ -40,8 +40,8 @@ const Home = () => {
                     </div>
                 </div>
                 <div className="flex flex-nowrap overflow-x-auto">
-                    {destinations.map(destination => (
-                        <DestinationCard title={destination.name} rating={destination.rating} description={destination.description} type={destination.destination_type} image={destination.image} cost={destination.cost} location={destination.location} />
+                    {destinations.map((destination, index) => (
+                        <DestinationCard key={index} id={destination.id} title={destination.name} rating={destination.rating} description={destination.description} type={destination.destination_type} image={destination.images.length > 0 ? destination.images[0].image : ""} cost={destination.cost} location={destination.location} />
                     ))}
                 </div>
             </div>

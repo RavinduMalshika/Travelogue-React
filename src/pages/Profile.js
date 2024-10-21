@@ -16,7 +16,7 @@ const Profile = () => {
     const [isDeleting, setIsDeleting] = useState(false);
     const [countryList, setCountryList] = useState([]);
     const [selectedImage, setSelectedImage] = useState("");
-    const [profilePicture, setProfilePiicture] = useState("");
+    const [profilePicture, setProfilePicture] = useState("");
     const [username, setUsername] = useState(user != null ? user.username : "");
     const [country, setCountry] = useState(user != null ? user.location : "");
     const [firstName, setFirstName] = useState(user != null ? user.firstName : "");
@@ -39,7 +39,7 @@ const Profile = () => {
 
     useEffect(() => {
         console.log("useEffect called")
-        setProfilePiicture(user != null ? user.image : "");
+        setProfilePicture(user != null ? user.image : "");
         setUsername(user != null ? user.username : "");
         setCountry(user != null ? user.location : "");
         setFirstName(user != null ? user.firstName : "");
@@ -48,7 +48,7 @@ const Profile = () => {
 
     const toggleEditing = () => {
         setIsEditing(!isEditing);
-        setProfilePiicture(user.image);
+        setProfilePicture(user.image);
         setUsername(user.username);
         setCountry(user.location);
         setFirstName(user.firstName);
@@ -154,7 +154,7 @@ const Profile = () => {
 
             const reader = new FileReader();
             reader.onloadend = () => {
-                setProfilePiicture(reader.result);
+                setProfilePicture(reader.result);
             };
             reader.readAsDataURL(file);
         }
