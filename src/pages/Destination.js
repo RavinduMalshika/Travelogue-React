@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import { useParams } from "react-router-dom";
 import apiClient from "../apiClient";
-import { StarIcon } from "@heroicons/react/24/outline";
+import { StarIcon, ExclamationCircleIcon } from "@heroicons/react/24/outline";
 
 const Destination = () => {
     const { id } = useParams();
@@ -52,13 +52,21 @@ const Destination = () => {
     }, [destination])
 
     return (
-        <div>
+        <div className="relative">
             <Navbar />
+
             {destination != null &&
-                <div className="flex flex-col md:mx-10 m-5">
+                <div className="relative flex flex-col md:mx-10 m-5">
                     <div className="flex flex-col md:flex-row">
                         <div className="basis-2/3 bg-slate m-3 rounded-xl border border-slate-600">
-                            <p className="m-3 text-xl font-semibold">{destination.name}</p>
+                            <div className="flex flex-row m-3">
+                                <p className="grow text-xl font-semibold">{destination.name}</p>
+
+                                <div className="flex flex-row text-sm hover:text-red-600 cursor-pointer">
+                                    <ExclamationCircleIcon className="w-5 text-yellow-600" />
+                                    <p className="my-auto">Report</p>
+                                </div>
+                            </div>
                             <div className="flex flex-row">
                                 <p className="m-3 text-lg font-semibold grow">{destination.location}</p>
                                 <p className="m-3 text-lg font-semibold">{destination.destination_type}</p>
@@ -79,7 +87,7 @@ const Destination = () => {
                                 loading="lazy"
                                 allowfullscreen
                                 referrerpolicy="no-referrer-when-downgrade"
-                                src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyDFVYgN5RtJyNsbVQiCvtpBv6wUbALj7Rc&q=${map}`}
+                                src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyB9acgGn5MwkXuT7tbYqSe18TdEUOElHgk&q=${map}`}
                             />
 
 
@@ -91,18 +99,18 @@ const Destination = () => {
                         {reviews.map(review => (
                             <div className="flex flex-col md:flex-row bg-slate-200 m-3 p-3 rounded-xl gap-3">
                                 <div className="flex flex-col">
-                                <img className="size-12 lg:size-14 object-cover rounded-full" src={review.user_profile.image} />
+                                    <img className="size-12 lg:size-14 object-cover rounded-full" src={review.user_profile.image} />
 
-                                <div className="flex flex-col w-28">
-                                    <p className="font-semibold truncate">{review.user_profile.user.username}</p>
-                                    <div className="flex flex-row">
-                                        <StarIcon className={review.rating >= 1 ? "w-5 fill-yellow-400 text-yellow-600" : "w-5 text-yellow-500"} />
-                                        <StarIcon className={review.rating >= 2 ? "w-5 fill-yellow-400 text-yellow-600" : "w-5 text-yellow-500"} />
-                                        <StarIcon className={review.rating >= 3 ? "w-5 fill-yellow-400 text-yellow-600" : "w-5 text-yellow-500"} />
-                                        <StarIcon className={review.rating >= 4 ? "w-5 fill-yellow-400 text-yellow-600" : "w-5 text-yellow-500"} />
-                                        <StarIcon className={review.rating >= 5 ? "w-5 fill-yellow-400 text-yellow-600" : "w-5 text-yellow-500"} />
+                                    <div className="flex flex-col w-28">
+                                        <p className="font-semibold truncate">{review.user_profile.user.username}</p>
+                                        <div className="flex flex-row">
+                                            <StarIcon className={review.rating >= 1 ? "w-5 fill-yellow-400 text-yellow-600" : "w-5 text-yellow-500"} />
+                                            <StarIcon className={review.rating >= 2 ? "w-5 fill-yellow-400 text-yellow-600" : "w-5 text-yellow-500"} />
+                                            <StarIcon className={review.rating >= 3 ? "w-5 fill-yellow-400 text-yellow-600" : "w-5 text-yellow-500"} />
+                                            <StarIcon className={review.rating >= 4 ? "w-5 fill-yellow-400 text-yellow-600" : "w-5 text-yellow-500"} />
+                                            <StarIcon className={review.rating >= 5 ? "w-5 fill-yellow-400 text-yellow-600" : "w-5 text-yellow-500"} />
+                                        </div>
                                     </div>
-                                </div>
                                 </div>
 
                                 <div className="grow bg-white rounded-xl p-3">
@@ -111,8 +119,20 @@ const Destination = () => {
                             </div>
                         ))}
                     </div>
+
+
+
+                    <div className="absolute left-1/2 -translate-x-1/2 z-20 flex items-center justify-center h-screen">
+                        <div className="bg-red-100 opacity-100 shadow-100">
+                            <p>Report Destination</p>
+                        </div>
+                    </div>
                 </div>
             }
+
+            <div className="absolute left-0 z-10 top-0 bg-black opacity-50 w-screen h-full">
+                <p>f</p>
+            </div>
         </div>
     );
 }
