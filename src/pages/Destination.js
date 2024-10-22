@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import { useParams } from "react-router-dom";
 import apiClient from "../apiClient";
-import { StarIcon, ExclamationCircleIcon, XCircleIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { StarIcon, ExclamationCircleIcon, XMarkIcon } from "@heroicons/react/24/outline";
+
 
 const Destination = () => {
-    const apiKey = process.env.GOOGLE_API_KEY;
+    const apiKey = process.env.REACT_APP_GOOGLE_API_KEY;
     const { id } = useParams();
     const [destination, setDestination] = useState(null);
     const [map, setMap] = useState("");
@@ -33,7 +34,6 @@ const Destination = () => {
         })
             .then(response => {
                 setReviews(response.data);
-                console.log(response.data);
             })
             .catch(error => {
                 console.error('There was an error fetching the reviews:', error);
@@ -86,8 +86,8 @@ const Destination = () => {
                             <iframe
                                 className="w-full h-full grow"
                                 loading="lazy"
-                                allowfullscreen
-                                referrerpolicy="no-referrer-when-downgrade"
+                                allowFullScreen
+                                referrerPolicy="no-referrer-when-downgrade"
                                 src={`https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=${map}`}
                             />
                         </div>
@@ -121,7 +121,7 @@ const Destination = () => {
 
 
 
-                    <div className="absolute left-1/2 -translate-x-1/2 z-20 flex items-center justify-center h-screen w-3/4">
+                    <div className="absolute left-1/2 -translate-x-1/2 z-20 flex items-center justify-center h-screen w-3/4 hidden">
                         <div className="flex flex-col gap-3 bg-red-100 rounded-xl p-5 w-full">
                             <div className="flex flex-row">
                             <p className="grow text-xl font-semibold">Report Destination</p>
@@ -134,7 +134,7 @@ const Destination = () => {
                 </div>
             }
 
-            <div className="absolute left-0 z-10 top-0 bg-black opacity-50 w-screen h-full">
+            <div className="absolute left-0 z-10 top-0 bg-black opacity-50 w-screen h-full hidden">
             </div>
         </div>
     );
