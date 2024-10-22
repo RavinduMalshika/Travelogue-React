@@ -5,7 +5,7 @@ import apiClient from "../apiClient";
 import { StarIcon, ExclamationCircleIcon, XCircleIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
 const Destination = () => {
-    const apiKey = 'kkjkjk';
+    const apiKey = process.env.GOOGLE_API_KEY;
     const { id } = useParams();
     const [destination, setDestination] = useState(null);
     const [map, setMap] = useState("");
