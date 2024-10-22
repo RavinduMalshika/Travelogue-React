@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import { useParams } from "react-router-dom";
 import apiClient from "../apiClient";
-import { StarIcon, ExclamationCircleIcon } from "@heroicons/react/24/outline";
+import { StarIcon, ExclamationCircleIcon, XCircleIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
 const Destination = () => {
+    const apiKey = 'kkjkjk';
     const { id } = useParams();
     const [destination, setDestination] = useState(null);
     const [map, setMap] = useState("");
@@ -87,10 +88,8 @@ const Destination = () => {
                                 loading="lazy"
                                 allowfullscreen
                                 referrerpolicy="no-referrer-when-downgrade"
-                                src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyB9acgGn5MwkXuT7tbYqSe18TdEUOElHgk&q=${map}`}
+                                src={`https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=${map}`}
                             />
-
-
                         </div>
                     </div>
 
@@ -122,16 +121,20 @@ const Destination = () => {
 
 
 
-                    <div className="absolute left-1/2 -translate-x-1/2 z-20 flex items-center justify-center h-screen">
-                        <div className="bg-red-100 opacity-100 shadow-100">
-                            <p>Report Destination</p>
+                    <div className="absolute left-1/2 -translate-x-1/2 z-20 flex items-center justify-center h-screen w-3/4">
+                        <div className="flex flex-col gap-3 bg-red-100 rounded-xl p-5 w-full">
+                            <div className="flex flex-row">
+                            <p className="grow text-xl font-semibold">Report Destination</p>
+                            <XMarkIcon className="w-8 hover:text-red-600" />
+                            </div>
+                            <textarea className="rounded-xl py-2 px-3 text-start border border-slate-600 w-full" placeholder="Reason for reporting..." rows={3}/>
+                            <button className="bg-red-500 rounded-xl w-fit ms-auto py-2 px-3">Report</button>
                         </div>
                     </div>
                 </div>
             }
 
             <div className="absolute left-0 z-10 top-0 bg-black opacity-50 w-screen h-full">
-                <p>f</p>
             </div>
         </div>
     );
