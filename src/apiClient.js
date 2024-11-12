@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const apiClient = axios.create({
-    baseURL: 'http://localhost:8000',
+    baseURL: 'http://192.168.1.27:8000',
 });
 
 apiClient.interceptors.response.use(
@@ -31,7 +31,7 @@ apiClient.interceptors.response.use(
 
 async function refreshAccessToken(refreshToken) {
     console.log("refresh token at refAccess:" + refreshToken);
-    const response = await fetch('http://localhost:8000/token/', {
+    const response = await fetch('http://192.168.1.27:8000/token/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

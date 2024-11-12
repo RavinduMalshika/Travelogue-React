@@ -1,12 +1,15 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import Navbar from "../components/Navbar";
 import { PhotoIcon, PlusIcon } from "@heroicons/react/24/solid";
 import { TrashIcon, StarIcon } from "@heroicons/react/24/outline";
 import apiClient from "../apiClient";
 import { AppContext } from "../AppContext";
+import Toast from "../components/Toast";
+import { useNavigate } from "react-router-dom";
 
 const AddDestination = () => {
     const { user } = useContext(AppContext);
+    const navigate = useNavigate();
 
     const [name, setName] = useState("");
     const [countryList, setCountryList] = useState([]);
@@ -20,6 +23,9 @@ const AddDestination = () => {
     const [selectedImages, setSelectedImages] = useState([]);
     const [rating, setRating] = useState(null);
     const [review, setReview] = useState("");
+    const [isToastHidden, setIsToastHidden] = useState(true);
+    const [isToastSuccess, setIsToastSuccess] = useState(true);
+    const [toastMessage, setToastMessage] = useState("");
 
     useEffect(() => {
         fetch('https://restcountries.com/v3.1/all')
@@ -116,47 +122,73 @@ const AddDestination = () => {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
+        console.log(selectedImages.length)
 
-        let cost = `$${costLower} - $${costUpper}`;
+        if (selectedImages.length === 0) {
+            setToast(false, "Please insert at least one image.");
+        } else if(rating === null) {
+            setToast(false, "Please give a rating to the destination.");
+        } else {
+            let cost = `$${costLower} - $${costUpper}`;
+            const formData = new FormData();
+            formData.append('user', user.id);
+            formData.append('name', name);
+            formData.append('country', country);
+            formData.append('map', map)
+            formData.append('destination_type', type);
+            formData.append('description', description);
+            formData.append('cost', cost);
+            selectedImages.forEach(image => {
+                formData.append('images', image);
+            })
+            formData.append('images', selectedImages);
+            formData.append('rating', rating);
+            formData.append('review', review);
+            
+            apiClient.post("/destinations/create", formData)
+            .then(response => {
+                if(response.status === 200) {
+                    setToast(true, "Destination created and awaiting approval.");
+                }
+            })
+            .catch(error => {
+                console.log("Error when saving destination: ", error);
+                setToast(false, "Failed to create new Destination..");
+            })
+        }
+    }
 
-        const formData = new FormData();
-        formData.append('user', user.id);
-        formData.append('name', name);
-        formData.append('country', country);
-        formData.append('map', map)
-        formData.append('destination_type', type);
-        formData.append('description', description);
-        formData.append('cost', cost);
-        selectedImages.forEach(image => {
-            formData.append('images', image);
-        })
-        formData.append('images', selectedImages);
-        formData.append('rating', rating);
-        formData.append('review', review);
-        // try {
-        //     const response = await apiClient.post("/destinations/create", formData);
-        // } catch (error) {
-        //     console.error("Error occured when saving destination: " + error);
-        // }
+    const setToast = (isSuccess, message) => {
+        setIsToastHidden(false);
+        setIsToastSuccess(isSuccess);
+        setToastMessage(message);
+
+        setTimeout(() => {
+            setIsToastHidden(true);
+            if (isSuccess) {
+                navigate("/");
+            }
+        }, 1500);
     }
 
     return (
         <div>
             <Navbar />
 
-            <div className="md:w-3/4 my-5 md:mx-auto mx-3 bg-slate-100 rounded-xl border-2">
+            <div className="md:w-3/4 my-5 md:mx-auto mx-3 bg-comp-light dark:bg-comp-dark rounded-xl border-2 dark:border-slate-600">
                 <form className="flex flex-col gap-5 m-5" onSubmit={handleSubmit}>
-                    <p className="text-center text-xl">Add a Destination</p>
+                    <p className="text-black dark:text-white text-center text-xl">Add a Destination</p>
 
                     <input
-                        className="rounded-xl py-2 px-3 text-center border border-slate-600"
+                        className="rounded-xl py-2 px-3 dark:bg-gray-900 text-black dark:text-white text-center border border-slate-600"
                         placeholder="Name"
                         type="text"
+                        required
                         onChange={(e) => setName(e.target.value)}
                     />
 
                     <div className="flex flex-col md:flex-row gap-3">
-                        <select className="basis-1/2 rounded-xl py-2 px-3 text-center border border-slate-600" onChange={(e) => setType(e.target.value)}>
+                        <select className="basis-1/2 rounded-xl py-2 px-3 dark:bg-gray-900 text-black dark:text-white text-center border border-slate-600" required onChange={(e) => setType(e.target.value)}>
                             <option value="" hidden>Type</option>
                             <option value="Destination">Destination</option>
                             <option value="Hiking">Hiking</option>
@@ -164,7 +196,7 @@ const AddDestination = () => {
                             <option value="Tour">Tour</option>
                         </select>
 
-                        <select className="basis-1/2 grow rounded-xl py-2 px-3 text-center border border-slate-600" onChange={(e) => setCountry(e.target.value)}>
+                        <select className="basis-1/2 grow rounded-xl py-2 px-3 dark:bg-gray-900 text-black dark:text-white text-center border border-slate-600" required onChange={(e) => setCountry(e.target.value)}>
                             <option value="" hidden>Country</option>
                             {countryList.map((country, index) => (
                                 <option key={index} value={country}>{country}</option>
@@ -173,33 +205,36 @@ const AddDestination = () => {
                     </div>
 
                     <input
-                        className="rounded-xl py-2 px-3 text-center border border-slate-600"
+                        className="rounded-xl py-2 px-3 dark:bg-gray-900 text-black dark:text-white text-center border border-slate-600"
                         placeholder="Google Maps Location"
                         type="text"
                         onChange={(e) => setMap(e.target.value)}
                     />
 
-
-
                     <textarea
-                        className="rounded-xl py-2 px-3 text-center border border-slate-600"
+                        className="rounded-xl py-2 px-3 dark:bg-gray-900 text-black dark:text-white text-center border border-slate-600"
                         rows={3}
                         placeholder="Description"
+                        required
                         onChange={(e) => setDescription(e.target.value)}
                     />
 
                     <div className="flex flex-row gap-2 min-w-0">
                         <p className="my-auto">Cost:</p>
                         <input
-                            className="grow w-2/6 rounded-xl py-2 px-3 text-center border border-slate-600"
+                            className="grow w-2/6 rounded-xl py-2 px-3 dark:bg-gray-900 text-black dark:text-white text-center border border-slate-600"
                             placeholder="From ($)"
-                            type="text" onChange={(e) => setCostLower(e.target.value)}
+                            type="text"
+                            required
+                            onChange={(e) => setCostLower(e.target.value)}
                         />
                         <p className="my-auto">-</p>
                         <input
-                            className="grow w-2/6 rounded-xl py-2 px-3 text-center border border-slate-600"
+                            className="grow w-2/6 rounded-xl py-2 px-3 dark:bg-gray-900 text-black dark:text-white text-center border border-slate-600"
                             placeholder="To ($)"
-                            type="text" onChange={(e) => setCostUpper(e.target.value)}
+                            type="text"
+                            required
+                            onChange={(e) => setCostUpper(e.target.value)}
                         />
                     </div>
 
@@ -217,7 +252,7 @@ const AddDestination = () => {
 
                         {images.length < 5 &&
                             <div
-                                className="relative m-5 w-40 md:w-60 aspect-4/3 bg-slate-200 place-content-center rounded-xl flex-shrink-0 text-center"
+                                className="relative m-5 w-40 md:w-60 aspect-4/3 bg-slate-200 dark:bg-gray-900 text-black dark:text-white place-content-center rounded-xl flex-shrink-0 text-center"
                                 onClick={handleUpload}
                             >
                                 <PhotoIcon className="w-20 mx-auto" />
@@ -235,9 +270,9 @@ const AddDestination = () => {
                         onChange={handleInsertImage}
                     />
 
-                    <div className="flex flex-row">
+                    <div className="flex flex-row text-black dark:text-white">
                         <StarIcon
-                            className="rating w-10 cursor-pointer p-1"
+                            className="rating w-10 cursor-pointer p-1 "
                             id="1"
                             onMouseOver={handleRatingHoverIn}
                             onMouseLeave={handleRatingHoverOut}
@@ -274,15 +309,18 @@ const AddDestination = () => {
                     </div>
 
                     <textarea
-                        className="rounded-xl py-2 px-3 text-center border border-slate-600"
+                        className="rounded-xl py-2 px-3 dark:bg-gray-900 text-black dark:text-white text-center border border-slate-600"
                         rows={3}
                         placeholder="Review"
+                        required
                         onChange={(e) => setReview(e.target.value)}
                     />
 
-                    <button className="bg-lime-500 rounded-xl w-fit ms-auto my-3 py-2 px-3" type="submit">Save Destination</button>
+                    <button className="bg-accent-light dark:bg-accent-dark text-black dark:text-white rounded-xl w-fit ms-auto my-3 py-2 px-3" type="submit">Save Destination</button>
                 </form>
             </div>
+
+            <Toast isHidden={isToastHidden} isSuccess={isToastSuccess} message={toastMessage} />
         </div>
     );
 }

@@ -6,6 +6,7 @@ import { PencilSquareIcon, CheckIcon, XMarkIcon, TrashIcon } from "@heroicons/re
 import { UserCircleIcon } from "@heroicons/react/24/solid";
 import { useNavigate } from "react-router-dom";
 import apiClient from "../apiClient";
+import Toast from "../components/Toast";
 
 const Profile = () => {
     const { user } = useContext(AppContext);
@@ -15,7 +16,7 @@ const Profile = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [countryList, setCountryList] = useState([]);
-    const [selectedImage, setSelectedImage] = useState("");
+    const [selectedImage, setSelectedImage] = useState("keep");
     const [profilePicture, setProfilePicture] = useState("");
     const [username, setUsername] = useState(user != null ? user.username : "");
     const [country, setCountry] = useState(user != null ? user.location : "");
@@ -25,8 +26,17 @@ const Profile = () => {
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [password, setPassword] = useState("");
+    const [visitedPlaces, setVisitedPlaces] = useState([]);
+    const [wishlist, setWishlist] = useState([]);
+    const [isToastHidden, setIsToastHidden] = useState(true);
+    const [isToastSuccess, setIsToastSuccess] = useState(true);
+    const [toastMessage, setToastMessage] = useState("");
 
     useEffect(() => {
+        if (user === null) {
+            navigate("/");
+        }
+
         fetch('https://restcountries.com/v3.1/all')
             .then(response => response.json())
             .then(data => {
@@ -38,12 +48,42 @@ const Profile = () => {
     }, [])
 
     useEffect(() => {
-        console.log("useEffect called")
         setProfilePicture(user != null ? user.image : "");
         setUsername(user != null ? user.username : "");
         setCountry(user != null ? user.location : "");
         setFirstName(user != null ? user.firstName : "");
         setLastName(user != null ? user.lastName : "");
+        setSelectedImage(user != null ? user.image : "keep");
+
+        console.log(user);
+
+        if (user != null) {
+            apiClient.get('/destinations/visited-places', {
+                params: {
+                    user_id: user.id
+                }
+            })
+                .then(response => {
+                    console.log(response.data);
+                    setVisitedPlaces(response.data);
+                })
+                .catch(error => {
+                    console.error('There was an error fetching the visited places!', error);
+                });
+
+            apiClient.get('/destinations/wishlist', {
+                params: {
+                    user_id: user.id
+                }
+            })
+                .then(response => {
+                    console.log(response.data);
+                    setWishlist(response.data);
+                })
+                .catch(error => {
+                    console.error('There was an error fetching the visited places!', error);
+                });
+        }
     }, [user])
 
     const toggleEditing = () => {
@@ -72,39 +112,15 @@ const Profile = () => {
             setIsEditing(false);
             getUser();
 
-            toast.classList.remove('hidden');
-            toast.classList.add('border-green-400');
-            toast.classList.add('bg-green-100');
-            toast.innerHTML = "<p>Profile Details Updated Successfully.</p>"
-            setTimeout(() => {
-                toast.classList.add('hidden');
-                toast.classList.remove('border-green-400');
-                toast.classList.remove('bg-green-100');
-            }, 3000);
+            setToast(true, "Details updated successfully")
         } catch (error) {
             console.error('Error during edit:', error);
             if (error.response.data.error === "username") {
 
-                toast.classList.remove('hidden');
-                toast.classList.add('border-red-400');
-                toast.classList.add('bg-red-100');
-                toast.innerHTML = "<p>Username already exists. Choose another.</p>"
-                setTimeout(() => {
-                    toast.classList.add('hidden');
-                    toast.classList.remove('border-red-400');
-                    toast.classList.remove('bg-red-100');
-                }, 3000);
+                setToast(false, "Username already exists.");
             }
             else {
-                toast.classList.remove('hidden');
-                toast.classList.add('border-red-400');
-                toast.classList.add('bg-red-100');
-                toast.innerHTML = "<p>Error. Could not edit Profile Details.</p>"
-                setTimeout(() => {
-                    toast.classList.add('hidden');
-                    toast.classList.remove('border-red-400');
-                    toast.classList.remove('bg-red-100');
-                }, 3000);
+                setToast("Error. Could not edit Profile Details.");
             }
         }
     }
@@ -160,6 +176,11 @@ const Profile = () => {
         }
     }
 
+    const removeProfilePicture = () => {
+        setProfilePicture("");
+        setSelectedImage("");
+    }
+
     const handleChangePassword = async (event) => {
         event.preventDefault();
         const toast = document.getElementById('toast');
@@ -175,54 +196,23 @@ const Profile = () => {
             setNewPassword("");
             setConfirmPassword("");
 
-            toast.classList.remove('hidden');
-            toast.classList.add('border-green-400');
-            toast.classList.add('bg-green-100');
-            toast.innerHTML = "<p>Password Updated Successfully.</p>"
-            setTimeout(() => {
-                toast.classList.add('hidden');
-                toast.classList.remove('border-green-400');
-                toast.classList.remove('bg-green-100');
-            }, 3000);
+            setToast(true, "Password Updated Successfully.")
         } catch (error) {
             switch (error.response.data.error) {
                 case "current_password":
-                    toast.classList.remove('hidden');
-                    toast.classList.add('border-red-400');
-                    toast.classList.add('bg-red-100')
-                    toast.innerHTML = "<p>Incorrect Password Entered</p>"
-                    setTimeout(() => {
-                        toast.classList.add('hidden');
-                        toast.classList.remove('border-red-400');
-                        toast.classList.remove('bg-red-100');
-                    }, 3000);
+                    setToast(false, "Incorrect Password Entered.");
                     break;
 
                 case "new_password":
-                    toast.classList.remove('hidden');
-                    toast.classList.add('border-red-400');
-                    toast.classList.add('bg-red-100')
-                    toast.innerHTML = "<p>Password must be at least 8 characters long, contain one uppercase letter, one lowercase letter, one number, and one special character.</p>"
-                    setTimeout(() => {
-                        toast.classList.add('hidden');
-                        toast.classList.remove('border-red-400');
-                        toast.classList.remove('bg-red-100');
-                    }, 3000);
+                    setToast(false, "Password must be at least 8 characters long, contain one uppercase letter, one lowercase letter, one number, and one special character.");
                     break;
 
                 case "confirm_password":
-                    toast.classList.remove('hidden');
-                    toast.classList.add('border-red-400');
-                    toast.classList.add('bg-red-100')
-                    toast.innerHTML = "<p>New password and the Confirmation password does not match.</p>"
-                    setTimeout(() => {
-                        toast.classList.add('hidden');
-                        toast.classList.remove('border-red-400');
-                        toast.classList.remove('bg-red-100');
-                    }, 3000);
+                    setToast(false, "New password and the Confirmation password does not match.");
                     break;
 
                 default:
+                    setToast(false, "Error occured when changing password.");
                     break;
             }
             console.error("Password Change Failed: " + error);
@@ -238,72 +228,61 @@ const Profile = () => {
                 password: password
             });
 
-            toast.classList.remove('hidden');
-            toast.classList.add('border-green-400');
-            toast.classList.add('bg-green-100');
-            toast.innerHTML = "<p>Account Deleted Successfully. You will be redirected to Home.</p>"
+            setToast(true, "Account Deleted Successfully. You will be redirected to Home.");
             setTimeout(() => {
-                toast.classList.add('hidden');
-                toast.classList.remove('border-green-400');
-                toast.classList.remove('bg-green-100');
                 navigate("/");
             }, 3000);
         } catch (error) {
             console.error("Account Deletion Failed: " + error);
             if (error.response.data.error == "password") {
-                toast.classList.remove('hidden');
-                toast.classList.add('border-red-400');
-                toast.classList.add('bg-red-100');
-                toast.innerHTML = "<p>Incorrect password.</p>"
-                setTimeout(() => {
-                    toast.classList.add('hidden');
-                    toast.classList.remove('border-red-400');
-                    toast.classList.remove('bg-red-100');
-                }, 3000);
+                setToast(false, "Incorrect password.");
             } else {
-                toast.classList.remove('hidden');
-                toast.classList.add('border-red-400');
-                toast.classList.add('bg-red-100');
-                toast.innerHTML = "<p>Network error.</p>"
-                setTimeout(() => {
-                    toast.classList.add('hidden');
-                    toast.classList.remove('border-red-400');
-                    toast.classList.remove('bg-red-100');
-                }, 3000);
+                setToast(false, "Error occured when deleting account.")
             }
         }
+    }
+
+    const setToast = (isSuccess, message) => {
+        setIsToastHidden(false);
+        setIsToastSuccess(isSuccess);
+        setToastMessage(message);
+
+        setTimeout(() => {
+            setIsToastHidden(true);
+        }, 1500);
     }
 
     return (
         <div>
             <Navbar />
             {user != null &&
-                <div className="mx-5">
-
-                    <p className="text-xl my-3">Welcome {user.username},</p>
-
-                    {user.visited_places.size > 0 &&
+                <div className="mx-5 text-black dark:text-white">
+                    {visitedPlaces.length > 0 &&
                         <div className="my-3">
                             <p className="text-xl">Visited Places</p>
-                            {user.visited_places.map(destination => (
-                                <DestinationCard title={destination.name} rating={destination.rating} description={destination.description} type={destination.destination_type} image={destination.image} cost={destination.cost} location={destination.location} />
-                            ))}
+                            <div className="flex flex-row">
+                                {visitedPlaces.map((destination, index) => (
+                                    <DestinationCard key={index} id={destination.id} title={destination.name} rating={destination.rating} description={destination.description} type={destination.destination_type} image={destination.images.length > 0 ? destination.images[0].image : ""} cost={destination.cost} location={destination.location} />
+                                ))}
+                            </div>
                         </div>
                     }
 
-                    {user.wishlist.size > 0 &&
+                    {wishlist.length > 0 &&
                         <div className="my-3">
                             <p className="text-xl">Wishlist</p>
-                            {user.wishlist.map(destination => (
-                                <DestinationCard title={destination.name} rating={destination.rating} description={destination.description} type={destination.destination_type} image={destination.image} cost={destination.cost} location={destination.location} />
-                            ))}
+                            <div className="flex flex-row">
+                                {wishlist.map((destination, index) => (
+                                    <DestinationCard key={index} id={destination.id} title={destination.name} rating={destination.rating} description={destination.description} type={destination.destination_type} image={destination.images.length > 0 ? destination.images[0].image : ""} cost={destination.cost} location={destination.location} />
+                                ))}
+                            </div>
                         </div>
                     }
 
                     <div className="my-3">
                         <p className="text-xl">Settings</p>
 
-                        <div className="flex flex-col bg-slate-100 m-3 pb-5 rounded-xl border-2">
+                        <div className="flex flex-col bg-slate-100 dark:bg-slate-950 m-3 pb-5 rounded-xl border-2 dark:border-slate-900">
                             <div className="relative flex justify-end m-5">
                                 <p className="absolute left-1/2 -translate-x-1/2 text-xl text-center font-semibold">Your Details</p>
                                 {isEditing &&
@@ -320,20 +299,24 @@ const Profile = () => {
                                 <div className="min-w-16">
                                     {profilePicture && (
                                         <div className="relative">
-                                            <img 
-                                            className="object-cover size-40 rounded-full" 
-                                            src={profilePicture} 
-                                            alt="Profile Picture" 
-                                            onClick={isEditing ? handleUpload : null}
-                                            role={isEditing ? "button" : null}
+                                            <img
+                                                className="object-cover size-40 rounded-full"
+                                                src={profilePicture}
+                                                alt="Profile Picture"
+                                                onClick={isEditing ? handleUpload : null}
+                                                role={isEditing ? "button" : null}
                                             />
                                             {isEditing &&
-                                                <TrashIcon className="absolute right-0 top-0 w-8 text-red-600 hover:scale-125 hover:text-red-500" role="button" />
+                                                <TrashIcon className="absolute right-0 top-0 w-8 text-red-600 hover:scale-125 hover:text-red-500" role="button" onClick={removeProfilePicture} />
                                             }
                                         </div>
                                     )}
                                     {!profilePicture && (
-                                        <UserCircleIcon className="min-w-40" />
+                                        <UserCircleIcon
+                                            className="min-w-40"
+                                            onClick={isEditing ? handleUpload : null}
+                                            role={isEditing ? "button" : null}
+                                        />
                                     )}
 
                                 </div>
@@ -349,7 +332,7 @@ const Profile = () => {
                                 <div className="md:block flex flex-col lg:w-1/2">
                                     <label className="inline-block md:w-1/4">Username:</label>
                                     <input
-                                        className="rounded-xl md:w-3/4 py-2 px-3 text-center border border-slate-600"
+                                        className="rounded-xl md:w-3/4 py-2 px-3 text-center dark:bg-gray-900 border border-slate-600"
                                         value={username}
                                         onChange={(e) => setUsername(e.target.value)}
                                         readOnly={!isEditing}
@@ -359,7 +342,7 @@ const Profile = () => {
                                 {isEditing &&
                                     <div className="md:block flex flex-col lg:w-1/2">
                                         <label className="inline-block md:w-1/4">Country:</label>
-                                        <select className="rounded-xl md:w-3/4 py-2 px-3 text-center border border-slate-600" onChange={(e) => setCountry(e.target.value)}>
+                                        <select className="rounded-xl md:w-3/4 py-2 px-3 text-center dark:bg-gray-900 border border-slate-600" onChange={(e) => setCountry(e.target.value)}>
                                             <option value="">{country}</option>
                                             {countryList.map((country, index) => (
                                                 <option key={index} value={country}>{country}</option>
@@ -371,7 +354,7 @@ const Profile = () => {
                                     <div className="md:block flex flex-col lg:w-1/2">
                                         <label className="inline-block md:w-1/4">Country:</label>
                                         <input
-                                            className="rounded-xl md:w-3/4 py-2 px-3 text-center border border-slate-600"
+                                            className="rounded-xl md:w-3/4 py-2 px-3 text-center dark:bg-gray-900 border border-slate-600"
                                             value={country}
                                             readOnly
                                         />
@@ -382,7 +365,7 @@ const Profile = () => {
                                 <div className="md:block flex flex-col lg:w-1/2">
                                     <label className="inline-block md:w-1/4">First Name:</label>
                                     <input
-                                        className="rounded-xl md:w-3/4 py-2 px-3 text-center border border-slate-600"
+                                        className="rounded-xl md:w-3/4 py-2 px-3 text-center dark:bg-gray-900 border border-slate-600"
                                         type="text"
                                         value={firstName}
                                         onChange={(e) => setFirstName(e.target.value)}
@@ -392,7 +375,7 @@ const Profile = () => {
                                 <div className="md:block flex flex-col lg:w-1/2">
                                     <label className="inline-block md:w-1/4">Last Name:</label>
                                     <input
-                                        className="rounded-xl md:w-3/4 py-2 px-3 text-center border border-slate-600"
+                                        className="rounded-xl md:w-3/4 py-2 px-3 text-center dark:bg-gray-900 border border-slate-600"
                                         value={lastName}
                                         onChange={(e) => setLastName(e.target.value)}
                                         readOnly={!isEditing}
@@ -402,11 +385,11 @@ const Profile = () => {
                         </div>
 
                         <div className="flex md:flex-row flex-col">
-                            <div className="md:w-1/2 bg-slate-100 m-3 rounded-xl border-2">
+                            <div className="md:w-1/2 bg-slate-100 dark:bg-slate-950 m-3 rounded-xl border-2 dark:border-slate-900">
                                 <p className="text-xl m-5 font-semibold text-center">Change Password</p>
                                 <form className="flex flex-col" onSubmit={handleChangePassword}>
                                     <input
-                                        className="rounded-xl lg:mx-20 mx-10 my-3 py-2 px-3 text-center border border-slate-600"
+                                        className="rounded-xl lg:mx-20 mx-10 my-3 py-2 px-3 text-center dark:bg-gray-900 border border-slate-600"
                                         placeholder="Current Password"
                                         type="password"
                                         value={currentPassword}
@@ -414,7 +397,7 @@ const Profile = () => {
                                         required
                                     />
                                     <input
-                                        className="rounded-xl lg:mx-20 mx-10 my-3 py-2 px-3 text-center border border-slate-600"
+                                        className="rounded-xl lg:mx-20 mx-10 my-3 py-2 px-3 text-center dark:bg-gray-900 border border-slate-600"
                                         placeholder="New Password"
                                         type="password"
                                         value={newPassword}
@@ -422,25 +405,25 @@ const Profile = () => {
                                         required
                                     />
                                     <input
-                                        className="rounded-xl lg:mx-20 mx-10 my-3 py-2 px-3 text-center border border-slate-600"
+                                        className="rounded-xl lg:mx-20 mx-10 my-3 py-2 px-3 text-center dark:bg-gray-900 border border-slate-600"
                                         placeholder="Confirm Password"
                                         type="password"
                                         value={confirmPassword}
                                         onChange={(e) => setConfirmPassword(e.target.value)}
                                         required
                                     />
-                                    <button className="bg-blue-400 rounded-xl w-fit mx-auto my-3 py-2 px-3" type="submit">Change Password</button>
+                                    <button className="bg-accent-light dark:bg-accent-dark rounded-xl w-fit mx-auto my-3 py-2 px-3" type="submit">Change Password</button>
                                 </form>
                             </div>
 
-                            <div className="flex flex-col md:w-1/2 bg-slate-100 m-3 rounded-xl border-2 gap-3 p-3">
+                            <div className="flex flex-col md:w-1/2 bg-slate-100 dark:bg-slate-950 m-3 rounded-xl border-2 dark:border-slate-900 gap-3 p-3">
                                 <p className="text-xl m-5 font-semibold text-center">Delete Account</p>
                                 <p className="font-semibold text-center">Are you sure you want to delete the account?</p>
                                 <p className="text-center">Once deleted the account <span className="text-red-600 font-semibold">cannot be recovered.</span></p>
                                 {isDeleting &&
                                     <form className="flex flex-col" onSubmit={handleDelete}>
                                         <input
-                                            className="rounded-xl md:w-3/4 mx-auto my-3 py-2 px-3 text-center border border-slate-600"
+                                            className="rounded-xl md:w-3/4 mx-auto my-3 py-2 px-3 text-center dark:bg-gray-900 border border-slate-600"
                                             placeholder="Password"
                                             type="password"
                                             onChange={(e) => setPassword(e.target.value)}
@@ -477,11 +460,7 @@ const Profile = () => {
                 </div>
             }
 
-            <div
-                id="toast"
-                className="hidden fixed bottom-4 left-1/2 -translate-x-1/2 w-3/4 text-center border rounded-xl text-lg px-3 py-5"
-            >
-            </div>
+            <Toast isHidden={isToastHidden} isSuccess={isToastSuccess} message={toastMessage} />
         </div >
     );
 }

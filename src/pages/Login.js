@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import { useNavigate } from "react-router-dom";
 import { UserCircleIcon, XMarkIcon } from "@heroicons/react/24/solid";
+import apiClient from "../apiClient";
 
 const Login = () => {
     const naviagte = useNavigate();
@@ -36,21 +37,15 @@ const Login = () => {
         console.log(loginUsername);
         console.log(loginPassword);
 
-        const response = await fetch("http://localhost:8000/users/login", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                username: loginUsername,
-                password: loginPassword
-            })
+        apiClient.post('/users/login', {
+            username: loginUsername,
+            password: loginPassword
         })
-            .then(response => response.json())
-            .then(data => {
-                if (data.access && data.refresh) {
-                    localStorage.setItem('access_token', data.access);
-                    localStorage.setItem('refresh_token', data.refresh);
+            .then(response => {
+                console.log(response.status);
+                if (response.data.access && response.data.refresh) {
+                    localStorage.setItem('access_token', response.data.access);
+                    localStorage.setItem('refresh_token', response.data.refresh);
                     console.log("Login Successful");
 
                     naviagte("/")
@@ -58,6 +53,9 @@ const Login = () => {
                     console.error("Login Failed");
                 }
             })
+            .catch(error => {
+                console.error("Login Failed: ", error)
+            });
     }
 
     const handleRegister = async (event) => {
@@ -140,13 +138,13 @@ const Login = () => {
             <Navbar />
 
 
-            <div className="absolute left-1/2 -translate-x-1/2 top-20 flex flex-row bg-slate-100 shadow-xl rounded-xl">
+            <div className="absolute left-1/2 -translate-x-1/2 top-20 flex flex-row bg-comp-light dark:bg-comp-dark shadow-xl dark:shadow-gray-800 rounded-xl border-2 dark:border-gray-900">
                 <div className="flex flex-col py-5 px-5 my-auto">
-                    <p className="text-center text-xl text-bold">Login</p>
+                    <p className="text-black dark:text-white text-center text-xl text-bold">Login</p>
 
                     <form className="flex flex-col" onSubmit={handleLogin} method="post">
                         <input
-                            className="rounded-xl m-3 py-2 px-3 border border-slate-600 text-center"
+                            className="rounded-xl m-3 py-2 px-3 dark:bg-gray-900 text-black dark:text-white border border-slate-600 text-center"
                             type="text"
                             value={loginUsername}
                             placeholder="Username"
@@ -154,25 +152,25 @@ const Login = () => {
                             required
                         />
                         <input
-                            className="rounded-xl m-3 py-2 px-3 border border-slate-600 text-center"
+                            className="rounded-xl m-3 py-2 px-3 dark:bg-gray-900 text-black dark:text-white border border-slate-600 text-center"
                             type="password"
                             value={loginPassword}
                             placeholder="Password"
                             onChange={(e) => setLoginPassword(e.target.value)}
                             required
                         />
-                        <button type="submit" className="bg-lime-500 rounded-xl w-fit mx-auto my-3 py-2 px-3">Login</button>
+                        <button type="submit" className="bg-accent-light dark:bg-accent-dark text-black dark:text-white rounded-xl w-fit mx-auto my-3 py-2 px-3">Login</button>
                     </form>
                 </div>
 
                 <div className="w-px min-h-full bg-gray-400 my-5"></div>
 
                 <div className="flex flex-col py-5 px-5">
-                    <p className="text-center text-xl text-bold">Register</p>
+                    <p className="text-black dark:text-white text-center text-xl text-bold">Register</p>
 
                     <form className="flex flex-col" onSubmit={handleRegister}>
                         <input
-                            className="rounded-xl m-3 py-2 px-3 text-center border border-slate-600 invalid:border-red-400"
+                            className="rounded-xl m-3 py-2 px-3 dark:bg-gray-900 text-black dark:text-white text-center border border-slate-600 invalid:border-red-400"
                             type="text"
                             value={registerUsername}
                             placeholder="Username"
@@ -187,7 +185,7 @@ const Login = () => {
                                     <img className="object-cover size-16 rounded-full" src={previewUrl} alt="Profile Picture" />
                                 )}
                                 {!previewUrl && (
-                                    <UserCircleIcon className="min-w-16" />
+                                    <UserCircleIcon className="min-w-16 text-black dark:text-white rounded-full" />
                                 )}
 
                             </div>
@@ -199,15 +197,18 @@ const Login = () => {
                                 onChange={handleProfilePicture}
                             />
 
-                            <button className="rounded-xl m-3 me-1 py-2 px-3 border border-slate-600 hover:border-black" onClick={handleUpload}>Upload</button>
+                            <button
+                                className="h-11 rounded-xl m-3 me-1 py-2 px-3 bg-gray-50 dark:bg-gray-900 border border-slate-400 hover:border-black dark:hover:border-white text-black dark:text-white"
+                                onClick={handleUpload}
+                            >Upload</button>
 
                             {previewUrl && (
-                                <XMarkIcon className="rounded-xl my-3 ms-1 py-2 px-3 border border-slate-600 text-red-500 hover:border-red-500" onClick={handleClear} />
+                                <XMarkIcon className="h-11 w-12 rounded-xl my-3 ms-1 py-2 px-3 bg-gray-50 dark:bg-gray-900 border border-slate-400 text-red-500 hover:border-red-500 cursor-pointer" onClick={handleClear} />
                             )}
                         </div>
 
                         <input
-                            className="rounded-xl m-3 py-2 px-3 text-center border border-slate-600 invalid:border-red-400"
+                            className="rounded-xl m-3 py-2 px-3 dark:bg-gray-900 text-black dark:text-white text-center border border-slate-600 invalid:border-red-400"
                             type="text"
                             value={firstName}
                             placeholder="First Name"
@@ -215,7 +216,7 @@ const Login = () => {
                             required
                         />
                         <input
-                            className="rounded-xl m-3 py-2 px-3 text-center border border-slate-600 invalid:border-red-400"
+                            className="rounded-xl m-3 py-2 px-3 dark:bg-gray-900 text-black dark:text-white text-center border border-slate-600 invalid:border-red-400"
                             type="text"
                             value={lastName}
                             placeholder="Last Name"
@@ -223,7 +224,7 @@ const Login = () => {
                             required
                         />
                         <select
-                            className="rounded-xl m-3 py-2 px-3 text-center border border-slate-600 invalid:border-red-400"
+                            className="rounded-xl m-3 py-2 px-3 dark:bg-gray-900 text-black dark:text-white text-center border border-slate-600 invalid:border-red-400"
                             value={country}
                             onChange={handleCountry}
                             required
@@ -235,7 +236,7 @@ const Login = () => {
                         </select>
                         <input
                             id="email"
-                            className="rounded-xl m-3 py-2 px-3 text-center border border-slate-600 invalid:border-red-400"
+                            className="rounded-xl m-3 py-2 px-3 dark:bg-gray-900 text-black dark:text-white text-center border border-slate-600 invalid:border-red-400"
                             type="email"
                             value={email}
                             placeholder="Email"
@@ -249,7 +250,7 @@ const Login = () => {
                         />
                         <input
                             id="registerPassword"
-                            className="rounded-xl m-3 py-2 px-3 text-center border border-slate-600 invalid:border-red-400"
+                            className="rounded-xl m-3 py-2 px-3 dark:bg-gray-900 text-black dark:text-white text-center border border-slate-600 invalid:border-red-400"
                             type="password"
                             value={registerPassword}
                             placeholder="Password"
@@ -262,14 +263,14 @@ const Login = () => {
                             required
                         />
                         <input
-                            className="rounded-xl m-3 py-2 px-3 text-center border border-slate-600invalid:border-red-400"
+                            className="rounded-xl m-3 py-2 px-3 dark:bg-gray-900 text-black dark:text-white text-center border border-slate-600invalid:border-red-400"
                             type="password"
                             value={confirmPassword}
                             placeholder="Confirm Password"
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             required
                         />
-                        <button type="submit" className="bg-sky-500 rounded-xl w-fit mx-auto my-3 py-2 px-3">Register</button>
+                        <button type="submit" className="bg-accent-light dark:bg-accent-dark text-black dark:text-white rounded-xl w-fit mx-auto my-3 py-2 px-3">Register</button>
                     </form>
                 </div>
             </div>
